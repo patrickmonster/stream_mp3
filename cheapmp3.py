@@ -42,10 +42,10 @@ class CheapMP3:
 
     def ReadFile(self):
         self.mNumFrames = 0
-        self.mMaxFrames = 64  # This will grow as needed
-        self.mFrameOffsets = [0 for _ in range(self.mMaxFrames)]
-        self.mFrameLens = [0 for _ in range(self.mMaxFrames)]
-        self.mFrameGains = [0 for _ in range(self.mMaxFrames)]
+        #self.mMaxFrames = 64  # This will grow as needed
+        self.mFrameOffsets = []#[0 for _ in range(self.mMaxFrames)]
+        self.mFrameLens = []#[0 for _ in range(self.mMaxFrames)]
+        self.mFrameGains = []#[0 for _ in range(self.mMaxFrames)]
         self.mBitrateSum = 0
         self.mMinGain = 255
         self.mMaxGain = 0
@@ -102,7 +102,6 @@ class CheapMP3:
 
                 if (bitRate == 0 or sampleRate == 0):
                     bufferOffset = 2
-                    #for (int i = 0; i < 12 - bufferOffset; i++):
                     for i in range(12 - bufferOffset):
                         buffer[i] = buffer[bufferOffset + i]
                     pos += bufferOffset
@@ -135,42 +134,15 @@ class CheapMP3:
 
                 self.mBitrateSum += bitRate 
 
-                self.mFrameOffsets[self.mNumFrames] = pos
-                self.mFrameLens[self.mNumFrames] = frameLen
-                self.mFrameGains[self.mNumFrames] = gain
+                self.mFrameOffsets.append(pos)
+                self.mFrameLens.append(frameLen)
+                self.mFrameGains.append(gain)
                 if (gain < self.mMinGain):
                     self.mMinGain = gain
                 if (gain > self.mMaxGain):
                     self.mMaxGain = gain
 
                 self.mNumFrames+=1
-                if (self.mNumFrames == self.mMaxFrames) :
-                    # We need to grow our arrays.  Rather than naively
-                    # doubling the array each time, we estimate the exact
-                    # number of frames we need and add 10% padding.  In
-                    # practice this seems to work quite well, only one
-                    # resize is ever needed, however to avoid pathological
-                    # cases we make sure to always double the size at a minimum.
-
-                    self.mAvgBitRate = self.mBitrateSum / self.mNumFrames
-                    totalFramesGuess =((self.mFileSize / self.mAvgBitRate) * sampleRate) / 144000
-                    newMaxFrames = int(totalFramesGuess * 11 / 10)
-                    if (newMaxFrames < self.mMaxFrames * 2):
-                        newMaxFrames = self.mMaxFrames * 2
-
-                    newOffsets = [0 for _ in range(newMaxFrames)]
-                    newLens = [0 for _ in range(newMaxFrames)]
-                    newGains = [0 for _ in range(newMaxFrames)]
-                    for i in range(self.mNumFrames):
-                        newOffsets[i] = self.mFrameOffsets[i]
-                        newLens[i] = self.mFrameLens[i]
-                        newGains[i] = self.mFrameGains[i]
-
-                    self.mFrameOffsets = newOffsets
-                    self.mFrameLens = newLens
-                    self.mFrameGains = newGains
-                    self.mMaxFrames = newMaxFrames
-                
                 stream.seek(frameLen - 12, 1) # 현 위치부터
                 pos += frameLen
                 offset = 0
@@ -184,5 +156,6 @@ class CheapMP3:
         #open
 mp3 = CheapMP3("test.mp3")
 mp3.ReadFile()
-print(mp3.mFrameOffsets, len(mp3.mFrameOffsets))
-#mp3.WriteFile("test2.mp3",800,1000)
+print(mp3.mFrameOffsets, len(mp3.mFrameOffsets), mp3.mGlobalSampleRate)
+#mp3.WriteFile("test2.mp3",20)# 20s(=800) 1s = 40
+#convert to https://github.com/mitch000001/ringdroid/blob/master/src/com/ringdroid/soundfile/CheapMP3.java
