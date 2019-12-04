@@ -169,8 +169,10 @@ class CheapMP3:
             else:
                 self.mAvgBitRate = 0
             print("Bitrate : %d \t Numframe : %d"%(self.mAvgBitRate,self.mNumFrames))
-mp3 = CheapMP3("test.mp3")
-mp3.ReadFile()
-print(mp3.mFrameOffsets, len(mp3.mFrameOffsets), mp3.mGlobalSampleRate)
-#mp3.WriteFile("test2.mp3",20)# 20s(=800) 1s = 40
-#convert to https://github.com/mitch000001/ringdroid/blob/master/src/com/ringdroid/soundfile/CheapMP3.java
+
+if __name__ == "__main__":
+    mp3 = CheapMP3("test.mp3")
+    mp3.ReadFile()
+    print(mp3.mFrameOffsets, len(mp3.mFrameOffsets), mp3.mGlobalSampleRate)
+    #mp3.WriteFile("test2.mp3",20)# 20s(=800) 1s = 40
+    #convert to https://github.com/mitch000001/ringdroid/blob/master/src/com/ringdroid/soundfile/CheapMP3.java
