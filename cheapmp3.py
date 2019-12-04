@@ -1,4 +1,5 @@
 import os
+
 class CheapMP3:
     BITRATES_MPEG1_L3 = [
         0,  32,  40,  48,  56,  64,  80,  96,
@@ -17,22 +18,37 @@ class CheapMP3:
         self.hash_255.extend([i for i in range(-128,0)])
 
 
-    def WriteFile(self,outputFile, numFrames, startFrame = 0):
+    def WriteFile(self, numFrames, startFrame = 0,outputFile=None):
         maxFrameLen = 0
         for i in range(numFrames):
             if (self.mFrameLens[startFrame + i] > maxFrameLen):
                 maxFrameLen = self.mFrameLens[startFrame + i]
         pos = 0
+
         with open(self.fname,'rb') as inf:
-            with open(outputFile,'wb') as ouf:
+            if outputFile != None:
+                with open(outputFile,'wb') as ouf:
+                    for i in range(numFrames):
+                        skip = self.mFrameOffsets[startFrame + i] - pos
+                        length = self.mFrameLens[startFrame + i]
+                        if (skip > 0) :
+                            inf.seek(skip,1)
+                            pos += skip
+                        ouf.write(inf.read(length))
+                        pos += length
+            else:
+                buffer = bytearray()
                 for i in range(numFrames):
                     skip = self.mFrameOffsets[startFrame + i] - pos
                     length = self.mFrameLens[startFrame + i]
                     if (skip > 0) :
                         inf.seek(skip,1)
                         pos += skip
-                    ouf.write(inf.read(length))
-                    pos += length
+                    buffer.extend(inf.read(length))
+                    #ouf.write(inf.read(length))
+                    pos += length 
+                return buffer
+        return None
 
     def convert_byte_to_char(self,b):
         if type(b) == int:
@@ -42,7 +58,6 @@ class CheapMP3:
 
     def ReadFile(self):
         self.mNumFrames = 0
-        #self.mMaxFrames = 64  # This will grow as needed
         self.mFrameOffsets = []#[0 for _ in range(self.mMaxFrames)]
         self.mFrameLens = []#[0 for _ in range(self.mMaxFrames)]
         self.mFrameGains = []#[0 for _ in range(self.mMaxFrames)]
@@ -153,7 +168,7 @@ class CheapMP3:
                 self.mAvgBitRate = self.mBitrateSum / self.mNumFrames
             else:
                 self.mAvgBitRate = 0
-        #open
+            print("Bitrate : %d \t Numframe : %d"%(self.mAvgBitRate,self.mNumFrames))
 mp3 = CheapMP3("test.mp3")
 mp3.ReadFile()
 print(mp3.mFrameOffsets, len(mp3.mFrameOffsets), mp3.mGlobalSampleRate)
